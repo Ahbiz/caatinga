@@ -36,6 +36,8 @@ export function registerRollbackCommand(program: Command): void {
         const network = resolveNetwork(config, options.network);
         const { name: networkName, config: networkConfig } = network;
 
+        logger.info(`Network: ${formatNetworkOrigin(network)}`);
+
         await confirmMainnetOperation({
           operation: "rollback",
           networkName,
@@ -52,7 +54,6 @@ export function registerRollbackCommand(program: Command): void {
         });
 
         logger.success("Artifact rollback complete");
-        logger.info(`Network: ${formatNetworkOrigin(network)}`);
         logger.info(`Contract: ${contractName}`);
         logger.info(`Active contract ID: ${options.to}`);
         logger.info(`Updated: ${result.path}`);

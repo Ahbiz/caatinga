@@ -11,7 +11,7 @@ export type ResolvedNetwork = {
 };
 
 export function formatNetworkOrigin(network: { name: string; origin?: NetworkOrigin }): string {
-  return `${network.name} (${network.origin ?? "config"})`;
+  return network.origin === undefined ? network.name : `${network.name} (${network.origin})`;
 }
 
 const BOILERPLATE_NETWORKS: Record<string, NetworkConfig> = Object.fromEntries(
@@ -45,9 +45,12 @@ export function resolveNetwork(
   config: CaatingaConfig,
   networkName?: string
 ): ResolvedNetwork & { origin: NetworkOrigin } {
-  const isFromFlag = networkName !== undefined && networkName.trim() !== "";
-  const name = isFromFlag ? networkName : config.defaultNetwork;
-  const origin: NetworkOrigin = isFromFlag ? "flag" : "config";
+  // `networkName ?? ...` (not a truthiness check): an empty --network must fail
+  // loudly instead of silently targeting defaultNetwork — e.g. `ctg deploy
+  // --network "$NET" --yes` in CI with $NET unset would otherwise hit whatever
+  // defaultNetwork (possibly mainnet) is configured (#244).
+  const name = networkName ?? config.defaultNetwork;
+  const origin: NetworkOrigin = networkName === undefined ? "config" : "flag";
   const network = config.networks[name];
 
   if (!network) {

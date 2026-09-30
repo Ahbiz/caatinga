@@ -3,7 +3,7 @@
 // clear, actionable error. `ctg generate verifier` overwrites this file with
 // real @stellar/stellar-sdk generate bindings.
 import { CaatingaError, CaatingaErrorCode } from "@caatinga/core/browser";
-import { appNetwork } from "../../network.js";
+import { appNetwork } from "../../../network.js";
 
 export const __caatingaPlaceholder = true;
 

@@ -33,10 +33,10 @@ export function registerInvokeCommand(program: Command): void {
       ) =>
         runCliAction(async () => {
           const config = await loadConfig();
-          const { name: networkName, config: networkConfig } = resolveNetwork(
-            config,
-            options.network
-          );
+          const network = resolveNetwork(config, options.network);
+          const { name: networkName, config: networkConfig } = network;
+
+          logger.info(`Network: ${formatNetworkOrigin(network)}`);
 
           await confirmMainnetOperation({
             operation: "invoke",
@@ -58,7 +58,6 @@ export function registerInvokeCommand(program: Command): void {
 
           logger.success("Invoke complete");
           logger.info("");
-          logger.info(`Network: ${formatNetworkOrigin(result.network)}`);
           logger.info(`Contract: ${result.target.contractName}`);
           logger.info(`Method: ${result.target.method}`);
 

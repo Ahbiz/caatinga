@@ -96,7 +96,7 @@ Exported from `@caatinga/core` for power users and CI. **Additive changes are mi
 
 ### Networks / config / templates
 
-- Networks: `resolveNetwork`, `formatNetworkOrigin`, `WELL_KNOWN_NETWORKS`
+- Networks: `resolveNetwork`, `formatNetworkOrigin`, `WELL_KNOWN_NETWORKS` (types: `ResolvedNetwork`, `NetworkOrigin`)
 - Config load: `loadConfig`, `CaatingaConfigSchema`
 - Templates: `createProjectFromTemplate`, `TemplateManifestSchema`
 

@@ -25,6 +25,8 @@ export function registerWireCommand(program: Command): void {
         const network = resolveNetwork(config, options.network);
         const { name: networkName, config: networkConfig } = network;
 
+        logger.info(`Network: ${formatNetworkOrigin(network)}`);
+
         if (!config.postDeploy || config.postDeploy.length === 0) {
           logger.info("No postDeploy hooks configured in caatinga.config.ts.");
           return;
@@ -50,7 +52,6 @@ export function registerWireCommand(program: Command): void {
         });
 
         logger.success("Wire complete");
-        logger.info(`Network: ${formatNetworkOrigin(network)}`);
         for (const hook of results) {
           logger.info(`  ${hook.contract}.${hook.method}`);
         }

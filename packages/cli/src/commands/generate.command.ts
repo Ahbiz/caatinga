@@ -58,9 +58,11 @@ export function registerGenerateCommand(program: Command): void {
       ) =>
         runCliAction(async () => {
           const config = await loadConfig();
+          const network = resolveNetwork(config, options.network);
+
+          logger.info(`Network: ${formatNetworkOrigin(network)}`);
 
           if (options.strictNetwork) {
-            const network = resolveNetwork(config, options.network);
             const artifacts = await readArtifacts();
             if (!artifacts.networks[network.name]) {
               throw new CaatingaError(
@@ -75,7 +77,7 @@ export function registerGenerateCommand(program: Command): void {
             await printFreshnessPreState(config, options.network);
           }
 
-          const { network, results } = await generateBindingsGraph({
+          const { results } = await generateBindingsGraph({
             config,
             contractName,
             networkName: options.network,
@@ -83,7 +85,6 @@ export function registerGenerateCommand(program: Command): void {
 
           logger.success("Client generated");
           logger.info("");
-          logger.info(`Network: ${formatNetworkOrigin(network)}`);
           for (const result of results) {
             logger.info("");
             logger.info(`Contract: ${result.contractName}`);

@@ -58,6 +58,8 @@ export function registerUpgradeCommand(program: Command): void {
           const network = resolveNetwork(config, options.network);
           const { name: networkName, config: networkConfig } = network;
 
+          logger.info(`Network: ${formatNetworkOrigin(network)}`);
+
           await confirmMainnetOperation({
             operation: "upgrade",
             networkName,
@@ -90,7 +92,6 @@ export function registerUpgradeCommand(program: Command): void {
           }
 
           logger.success("Upgrade complete");
-          logger.info(`Network: ${formatNetworkOrigin(network)}`);
           logger.info(`Contract: ${result.contractName}`);
           logger.info(`Contract ID: ${result.contractId}`);
           logger.info(`WASM hash: ${result.wasmHash}`);

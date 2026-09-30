@@ -51,6 +51,8 @@ export function registerZkInvokeCommand(program: Command): void {
           const network = resolveNetwork(config, options.network);
           const { name: networkName, config: networkConfig } = network;
 
+          logger.info(`Network: ${formatNetworkOrigin(network)}`);
+
           // Runs after the ceremony gate so a blocked dev-ceremony invoke still
           // reports CAATINGA_ZK_DEV_CEREMONY_BLOCKED rather than a confirmation error.
           await assertDevCeremonyAllowed({
@@ -84,7 +86,6 @@ export function registerZkInvokeCommand(program: Command): void {
 
           logger.success(`Proof verified for circuit "${name}"`);
           logger.info("");
-          logger.info(`Network: ${formatNetworkOrigin(network)}`);
           logger.info(`Verifier: ${result.verifierContract}`);
           logger.info(`Contract ID: ${result.contractId}`);
           logger.info(`Public signals: ${result.publicSignals.join(", ")}`);

@@ -35,7 +35,10 @@ export function registerCiCommand(program: Command): void {
         runCliAction(async () => {
           const config = await loadConfig();
           const network = resolveNetwork(config, options.network);
-          logger.info(`Network: ${formatNetworkOrigin(network)}`);
+          // ci run delegates to `ctg doctor` / `ctg smoke` with an explicit
+          // --network, so those children log `Network: <name> (flag)`. Logging
+          // here too would print the Network line twice (#244).
+          logger.info(`CI target network: ${formatNetworkOrigin(network)}`);
           const strictFlags = options.strict ? ["--strict"] : [];
 
           logger.info("CI: doctor");
