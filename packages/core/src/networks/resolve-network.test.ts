@@ -3,7 +3,7 @@ import type { CaatingaConfig } from "../config/config.schema.js";
 import { NetworkConfigSchema } from "../config/config.schema.js";
 import { CaatingaError, CaatingaErrorCode } from "../errors/CaatingaError.js";
 import { WELL_KNOWN_NETWORKS } from "./networks.js";
-import { resolveNetwork } from "./resolve-network.js";
+import { formatNetworkOrigin, resolveNetwork } from "./resolve-network.js";
 
 const baseConfig: CaatingaConfig = {
   project: "app",
@@ -28,13 +28,28 @@ describe("resolveNetwork", () => {
   it("should_resolve_default_network_when_name_omitted", () => {
     const r = resolveNetwork(baseConfig);
     expect(r.name).toBe("testnet");
+    expect(r.origin).toBe("config");
     expect(r.config.rpcUrl).toContain("testnet");
+    expect(formatNetworkOrigin(r)).toBe("testnet (config)");
   });
 
   it("should_resolve_explicit_network_when_configured", () => {
     const r = resolveNetwork(baseConfig, "mainnet");
     expect(r.name).toBe("mainnet");
+    expect(r.origin).toBe("flag");
     expect(r.config.rpcUrl).toContain("mainnet");
+    expect(formatNetworkOrigin(r)).toBe("mainnet (flag)");
+  });
+
+  it("should_treat_empty_network_name_as_config_origin", () => {
+    const r = resolveNetwork(baseConfig, "");
+    expect(r.name).toBe("testnet");
+    expect(r.origin).toBe("config");
+  });
+
+  it("should_format_network_origin_with_fallback_to_config", () => {
+    expect(formatNetworkOrigin({ name: "testnet" })).toBe("testnet (config)");
+    expect(formatNetworkOrigin({ name: "mainnet", origin: "flag" })).toBe("mainnet (flag)");
   });
 
   it("should_throw_CAATINGA_NETWORK_NOT_FOUND_when_name_missing", () => {

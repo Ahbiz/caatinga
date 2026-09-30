@@ -2,10 +2,17 @@ import { CaatingaError, CaatingaErrorCode } from "../errors/CaatingaError.js";
 import type { CaatingaConfig, NetworkConfig } from "../config/config.schema.js";
 import { NETWORK_METADATA_BY_PASSPHRASE } from "./network-metadata.js";
 
+export type NetworkOrigin = "flag" | "config";
+
 export type ResolvedNetwork = {
   name: string;
   config: NetworkConfig;
+  origin?: NetworkOrigin;
 };
+
+export function formatNetworkOrigin(network: { name: string; origin?: NetworkOrigin }): string {
+  return `${network.name} (${network.origin ?? "config"})`;
+}
 
 const BOILERPLATE_NETWORKS: Record<string, NetworkConfig> = Object.fromEntries(
   Object.entries(NETWORK_METADATA_BY_PASSPHRASE).map(([networkPassphrase, metadata]) => [
@@ -34,8 +41,13 @@ function renderNetworkBoilerplate(name: string, config: NetworkConfig): string {
   return `${BOILERPLATE_LABELS[name] ?? name} Boilerplate:\n  networks: {\n    ${name}: {\n${fields}\n    }\n  }`;
 }
 
-export function resolveNetwork(config: CaatingaConfig, networkName?: string): ResolvedNetwork {
-  const name = networkName ?? config.defaultNetwork;
+export function resolveNetwork(
+  config: CaatingaConfig,
+  networkName?: string
+): ResolvedNetwork & { origin: NetworkOrigin } {
+  const isFromFlag = networkName !== undefined && networkName.trim() !== "";
+  const name = isFromFlag ? networkName : config.defaultNetwork;
+  const origin: NetworkOrigin = isFromFlag ? "flag" : "config";
   const network = config.networks[name];
 
   if (!network) {
@@ -53,5 +65,5 @@ export function resolveNetwork(config: CaatingaConfig, networkName?: string): Re
     );
   }
 
-  return { name, config: network };
+  return { name, config: network, origin };
 }

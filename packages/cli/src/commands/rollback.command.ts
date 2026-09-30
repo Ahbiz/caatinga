@@ -4,6 +4,7 @@ import {
   CaatingaErrorCode,
   loadConfig,
   resolveNetwork,
+  formatNetworkOrigin,
   rollbackContractArtifact,
 } from "@caatinga/core";
 import { runCliAction } from "../utils/errors.js";
@@ -32,7 +33,8 @@ export function registerRollbackCommand(program: Command): void {
         }
 
         const config = await loadConfig();
-        const { name: networkName, config: networkConfig } = resolveNetwork(config, options.network);
+        const network = resolveNetwork(config, options.network);
+        const { name: networkName, config: networkConfig } = network;
 
         await confirmMainnetOperation({
           operation: "rollback",
@@ -50,7 +52,7 @@ export function registerRollbackCommand(program: Command): void {
         });
 
         logger.success("Artifact rollback complete");
-        logger.info(`Network: ${networkName}`);
+        logger.info(`Network: ${formatNetworkOrigin(network)}`);
         logger.info(`Contract: ${contractName}`);
         logger.info(`Active contract ID: ${options.to}`);
         logger.info(`Updated: ${result.path}`);

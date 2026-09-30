@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { execa } from "execa";
-import { loadConfig, resolveNetwork } from "@caatinga/core";
+import { formatNetworkOrigin, loadConfig, resolveNetwork } from "@caatinga/core";
 import { runCliAction } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 
@@ -35,6 +35,7 @@ export function registerCiCommand(program: Command): void {
         runCliAction(async () => {
           const config = await loadConfig();
           const network = resolveNetwork(config, options.network);
+          logger.info(`Network: ${formatNetworkOrigin(network)}`);
           const strictFlags = options.strict ? ["--strict"] : [];
 
           logger.info("CI: doctor");

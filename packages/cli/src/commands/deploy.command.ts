@@ -10,6 +10,7 @@ import {
   CaatingaErrorCode,
   loadConfig,
   resolveNetwork,
+  formatNetworkOrigin,
 } from "@caatinga/core";
 import { npxCli } from "../utils/cli-name.js";
 import { runCliAction } from "../utils/errors.js";
@@ -163,7 +164,7 @@ export function registerDeployCommand(program: Command): void {
 
           logger.success("Deploy complete");
           logger.info("");
-          logger.info(`Network: ${result.network.name}`);
+          logger.info(`Network: ${formatNetworkOrigin(result.network)}`);
           for (const skipped of result.skippedContracts) {
             logger.info(`[skipped] ${skipped.name} — already deployed on ${result.network.name}`);
             logger.info(`  Contract ID: ${skipped.contractId}`);
