@@ -25,6 +25,26 @@ describe("splitInvokeArgsAndOptions", () => {
       debugRaw: true,
     });
   });
+
+  it("should_keep_args_when_a_single_object_mixes_args_and_option_keys", () => {
+    const parsed = splitInvokeArgsAndOptions({ count: 1, debugRaw: true });
+
+    expect(parsed).toEqual({
+      args: { count: 1, debugRaw: true },
+      debugXdr: false,
+      debugRaw: false,
+    });
+  });
+
+  it("should_treat_an_empty_object_as_args", () => {
+    const parsed = splitInvokeArgsAndOptions({});
+
+    expect(parsed).toEqual({
+      args: {},
+      debugXdr: false,
+      debugRaw: false,
+    });
+  });
 });
 
 describe("splitReadArgsAndOptions", () => {
@@ -59,6 +79,44 @@ describe("splitReadArgsAndOptions", () => {
       debugRaw: true,
       sourceAccount: "GSOURCE",
     });
+  });
+
+  it("should_keep_args_when_a_single_object_mixes_args_and_option_keys", () => {
+    const parsed = splitReadArgsAndOptions({ sourceAccount: "GSOURCE", amount: 10 });
+
+    expect(parsed).toEqual({
+      args: { sourceAccount: "GSOURCE", amount: 10 },
+      debugRaw: false,
+      sourceAccount: undefined,
+    });
+  });
+
+  it("should_keep_args_for_an_empty_object", () => {
+    const parsed = splitReadArgsAndOptions({});
+
+    expect(parsed).toEqual({
+      args: {},
+      debugRaw: false,
+      sourceAccount: undefined,
+    });
+  });
+
+  it("should_treat_blank_sourceAccount_as_not_provided", () => {
+    expect(splitReadArgsAndOptions({ sourceAccount: "   " })).toEqual({
+      args: undefined,
+      debugRaw: false,
+      sourceAccount: undefined,
+    });
+
+    expect(splitReadArgsAndOptions({ key: "test" }, { sourceAccount: "" })).toEqual({
+      args: { key: "test" },
+      debugRaw: false,
+      sourceAccount: undefined,
+    });
+  });
+
+  it("should_trim_sourceAccount_whitespace", () => {
+    expect(splitReadArgsAndOptions({ sourceAccount: " GSOURCE " }).sourceAccount).toBe("GSOURCE");
   });
 });
 

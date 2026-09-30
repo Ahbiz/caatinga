@@ -181,14 +181,66 @@ console.log(result.raw);
 ```
 
 `simulate()` prepares the generated binding transaction and returns the parsed binding result.
-When a wallet is connected, it uses the wallet's public key as the simulation source account.
-If no wallet is connected or `wallet` is omitted from `createCaatingaClient()`, it falls back
-to a configured source account (`readSourceAccount` / `sourceAccount` in client config or
-`options.sourceAccount` per call) or the canonical placeholder account (`DEFAULT_READ_SOURCE_ACCOUNT`).
 It does not call `wallet.signTransaction()`. If the simulated method does not expose a result,
 the client throws `CAATINGA_READ_RESULT_MISSING`.
 
 Calling `invoke()` on a read-only binding method may fail with a hint to use `read()` or `simulate()` instead.
+
+### Source account
+
+`wallet` is optional for `read()` and `simulate()`. `invoke()` and `buildXdr()` still require one
+and throw `CAATINGA_WALLET_NOT_CONNECTED` when it is missing.
+
+Read-only calls choose a source account in this order:
+
+1. `options.sourceAccount` on that call
+2. the connected wallet's public key, when `getPublicKey()` resolves to a non-empty address
+3. `readSourceAccount` on `createCaatingaClient()`
+4. `DEFAULT_READ_SOURCE_ACCOUNT` (the Stellar null account)
+
+Omitting `wallet`, a disconnected or locked wallet, `CAATINGA_WALLET_NOT_CONNECTED`, or a blank
+address falls through to the next source. `CAATINGA_WALLET_TIMEOUT` and any other Caatinga error
+from the adapter are thrown: those are real failures, and the client does not hide them by reading
+as the fallback account. Wallet public keys are used as the adapter returned them.
+
+`readSourceAccount` and `options.sourceAccount` must be `G…` Ed25519 public keys (56 characters).
+Any other value throws `CAATINGA_INVALID_CONFIG` and names the option that held it. A blank or
+whitespace-only value is treated as omitted.
+
+The null-account placeholder is not sent to the RPC. When the resolved source is
+`DEFAULT_READ_SOURCE_ACCOUNT`, the client omits `publicKey` and `@stellar/stellar-sdk` builds the
+transaction with its local null account (`new Account(NULL_ACCOUNT, "0")`) instead of
+`Server.getAccount`. A wallet or configured source is loaded with `getAccount`.
+
+```ts
+const visitorView = await client.contract("counter").read<number>("get");
+
+const asFeePayer = await client.contract("counter").simulate<number>("get", {
+  sourceAccount: "G...",
+});
+```
+
+### Arguments and options
+
+`read`, `simulate`, and `invoke` take `(method, args?, options?)`. A single object is treated as
+options only when it is non-empty and every key is a known option key:
+
+- `read` / `simulate`: `debugRaw`, `sourceAccount`
+- `invoke`: `debugXdr`, `debugRaw`
+
+Any other object, including one that mixes method arguments with those keys, is forwarded to the
+contract method. An empty object is arguments.
+
+`{ sourceAccount }` alone is ambiguous. A contract argument that is literally named `sourceAccount`
+is consumed as the read option unless you pass options as the second argument:
+
+```ts
+await client.contract("registry").read("lookup", { sourceAccount: account }, {});
+
+await client
+  .contract("registry")
+  .read("lookup", { sourceAccount: account }, { sourceAccount: feePayer });
+```
 
 ## Project layout
 
