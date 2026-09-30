@@ -41,6 +41,7 @@ Root exports:
 - `CaatingaContractClient`
 - `buildXdr`
 - `createWalletSession`, `WALLET_SESSION_STORAGE_KEY`
+- `DEFAULT_READ_SOURCE_ACCOUNT`, `DEFAULT_SIMULATION_SOURCE_ACCOUNT`
 
 Types: `CaatingaBindingAdapter`, `CaatingaClientConfig`, `CaatingaContractRegistration`, `CaatingaInvokeOptions`, `CaatingaInvokeResult`, `CaatingaInvokeStatus`, `CaatingaNetwork`, `CaatingaReadOptions`, `CaatingaReadResult`, `CaatingaWalletAdapter`, `CaatingaXdrBuildResult`, wallet session types.
 

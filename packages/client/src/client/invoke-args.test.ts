@@ -34,6 +34,30 @@ describe("splitReadArgsAndOptions", () => {
     expect(parsed).toEqual({
       args: undefined,
       debugRaw: true,
+      sourceAccount: undefined,
+    });
+  });
+
+  it("should_extract_sourceAccount_when_passed_in_single_options_object", () => {
+    const parsed = splitReadArgsAndOptions({ sourceAccount: "GSOURCE" });
+
+    expect(parsed).toEqual({
+      args: undefined,
+      debugRaw: false,
+      sourceAccount: "GSOURCE",
+    });
+  });
+
+  it("should_keep_args_when_passed_with_explicit_options", () => {
+    const parsed = splitReadArgsAndOptions(
+      { key: "test" },
+      { debugRaw: true, sourceAccount: "GSOURCE" }
+    );
+
+    expect(parsed).toEqual({
+      args: { key: "test" },
+      debugRaw: true,
+      sourceAccount: "GSOURCE",
     });
   });
 });

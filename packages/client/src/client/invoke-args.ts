@@ -40,18 +40,22 @@ export function splitReadArgsAndOptions(
   maybeOptions?: CaatingaReadOptions
 ) {
   const looksLikeOptions =
-    argsOrOptions !== undefined && "debugRaw" in argsOrOptions && maybeOptions === undefined;
+    argsOrOptions !== undefined &&
+    ("debugRaw" in argsOrOptions || "sourceAccount" in argsOrOptions) &&
+    maybeOptions === undefined;
 
   if (looksLikeOptions) {
     const options = argsOrOptions as CaatingaReadOptions;
     return {
       args: undefined,
       debugRaw: options.debugRaw ?? false,
+      sourceAccount: options.sourceAccount,
     };
   }
 
   return {
     args: argsOrOptions as Record<string, unknown> | undefined,
     debugRaw: maybeOptions?.debugRaw ?? false,
+    sourceAccount: maybeOptions?.sourceAccount,
   };
 }

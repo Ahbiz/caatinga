@@ -180,9 +180,13 @@ console.log(result.result);
 console.log(result.raw);
 ```
 
-`simulate()` prepares the generated binding transaction and returns the parsed binding result. It calls
-`wallet.getPublicKey()` to build the generated client, but it does not call `wallet.signTransaction()`.
-If the simulated method does not expose a result, the client throws `CAATINGA_READ_RESULT_MISSING`.
+`simulate()` prepares the generated binding transaction and returns the parsed binding result.
+When a wallet is connected, it uses the wallet's public key as the simulation source account.
+If no wallet is connected or `wallet` is omitted from `createCaatingaClient()`, it falls back
+to a configured source account (`readSourceAccount` / `sourceAccount` in client config or
+`options.sourceAccount` per call) or the canonical placeholder account (`DEFAULT_READ_SOURCE_ACCOUNT`).
+It does not call `wallet.signTransaction()`. If the simulated method does not expose a result,
+the client throws `CAATINGA_READ_RESULT_MISSING`.
 
 Calling `invoke()` on a read-only binding method may fail with a hint to use `read()` or `simulate()` instead.
 

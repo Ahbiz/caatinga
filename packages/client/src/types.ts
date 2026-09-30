@@ -32,10 +32,21 @@ export interface CaatingaContractRegistration {
 export interface CaatingaClientConfig {
   network: CaatingaNetwork;
   artifacts: CaatingaArtifacts;
-  wallet: CaatingaWalletAdapter;
+  /**
+   * Wallet integration for signing transactions. Optional for read-only clients
+   * that only perform simulate or read operations.
+   */
+  wallet?: CaatingaWalletAdapter;
   /** Optional timeout (ms) for wallet `getPublicKey` and `signTransaction`. No default when omitted. */
   walletTimeout?: number;
   contracts: Record<string, CaatingaContractRegistration>;
+  /**
+   * Optional source account/public key used for simulation and read-only contract
+   * calls when no wallet is connected. Defaults to `DEFAULT_READ_SOURCE_ACCOUNT`.
+   */
+  readSourceAccount?: string;
+  /** Alias for {@link readSourceAccount}. */
+  sourceAccount?: string;
 }
 
 /**
@@ -60,6 +71,12 @@ export interface CaatingaInvokeOptions {
 
 export interface CaatingaReadOptions {
   debugRaw?: boolean;
+  /**
+   * Optional source account override for this simulation or read-only call.
+   * When omitted, uses the connected wallet's public key, the configured
+   * `readSourceAccount`, or `DEFAULT_READ_SOURCE_ACCOUNT`.
+   */
+  sourceAccount?: string;
 }
 
 export interface CaatingaInvokeResult<T = unknown> {

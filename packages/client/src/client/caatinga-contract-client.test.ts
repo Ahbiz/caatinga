@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { CaatingaErrorCode, type CaatingaArtifacts } from "@caatinga/core/browser";
+import { DEFAULT_READ_SOURCE_ACCOUNT } from "../constants.js";
 import { createCaatingaClient } from "./create-caatinga-client.js";
 
 const artifacts: CaatingaArtifacts = {
@@ -23,6 +24,8 @@ const artifacts: CaatingaArtifacts = {
   },
 };
 
+let lastClientInput: { publicKey?: string } | undefined;
+
 function createClientConfig(overrides: Record<string, unknown> = {}) {
   const wallet = {
     getPublicKey: vi.fn(async () => "GPUBLIC"),
@@ -30,6 +33,13 @@ function createClientConfig(overrides: Record<string, unknown> = {}) {
   };
 
   class Client {
+    public readonly clientInput?: { publicKey?: string };
+
+    constructor(input?: { publicKey?: string }) {
+      this.clientInput = input;
+      lastClientInput = input;
+    }
+
     increment() {
       return {
         toXDR() {
@@ -236,7 +246,7 @@ describe("CaatingaContractClient (via createCaatingaClient)", () => {
     });
   });
 
-  it("should_map_wallet_getPublicKey_rejection_to_WALLET_NOT_CONNECTED_on_simulate", async () => {
+  it("should_simulate_when_wallet_getPublicKey_rejects_using_placeholder_source_account", async () => {
     const config = createClientConfig({
       wallet: {
         getPublicKey: vi.fn(async () => {
@@ -247,7 +257,93 @@ describe("CaatingaContractClient (via createCaatingaClient)", () => {
     });
     const client = createCaatingaClient(config);
 
-    await expect(client.contract("counter").simulate("get")).rejects.toMatchObject({
+    const result = await client.contract("counter").simulate("get");
+    expect(result.status).toBe("simulated");
+    expect(result.result).toBe(42);
+    expect(lastClientInput?.publicKey).toBe(DEFAULT_READ_SOURCE_ACCOUNT);
+  });
+
+  it("should_simulate_when_wallet_is_omitted_from_config", async () => {
+    const config = createClientConfig();
+    delete (config as { wallet?: unknown }).wallet;
+    const client = createCaatingaClient(config);
+
+    const result = await client.contract("counter").simulate("get");
+    expect(result.status).toBe("simulated");
+    expect(result.result).toBe(42);
+    expect(lastClientInput?.publicKey).toBe(DEFAULT_READ_SOURCE_ACCOUNT);
+  });
+
+  it("should_simulate_using_configured_readSourceAccount_when_wallet_not_connected", async () => {
+    const config = createClientConfig({
+      wallet: {
+        getPublicKey: vi.fn(async () => {
+          throw new Error("no wallet");
+        }),
+        signTransaction: vi.fn(async () => "AAAA_SIGNED"),
+      },
+      readSourceAccount: "GCONFIGURED_READ_SOURCE_ACCOUNT",
+    });
+    const client = createCaatingaClient(config);
+
+    const result = await client.contract("counter").simulate("get");
+    expect(result.status).toBe("simulated");
+    expect(lastClientInput?.publicKey).toBe("GCONFIGURED_READ_SOURCE_ACCOUNT");
+  });
+
+  it("should_simulate_using_configured_sourceAccount_alias_when_wallet_not_connected", async () => {
+    const config = createClientConfig({
+      wallet: {
+        getPublicKey: vi.fn(async () => {
+          throw new Error("no wallet");
+        }),
+        signTransaction: vi.fn(async () => "AAAA_SIGNED"),
+      },
+      sourceAccount: "GCONFIGURED_SOURCE_ALIAS",
+    });
+    const client = createCaatingaClient(config);
+
+    const result = await client.contract("counter").simulate("get");
+    expect(result.status).toBe("simulated");
+    expect(lastClientInput?.publicKey).toBe("GCONFIGURED_SOURCE_ALIAS");
+  });
+
+  it("should_simulate_using_explicit_sourceAccount_option_overriding_connected_wallet", async () => {
+    const config = createClientConfig();
+    const client = createCaatingaClient(config);
+
+    const result = await client
+      .contract("counter")
+      .simulate("get", { sourceAccount: "GEXPLICIT_OVERRIDE" });
+    expect(result.status).toBe("simulated");
+    expect(lastClientInput?.publicKey).toBe("GEXPLICIT_OVERRIDE");
+  });
+
+  it("should_simulate_using_connected_wallet_public_key_when_available", async () => {
+    const config = createClientConfig();
+    const client = createCaatingaClient(config);
+
+    const result = await client.contract("counter").simulate("get");
+    expect(result.status).toBe("simulated");
+    expect(lastClientInput?.publicKey).toBe("GPUBLIC");
+  });
+
+  it("should_map_omitted_wallet_to_WALLET_NOT_CONNECTED_on_invoke", async () => {
+    const config = createClientConfig();
+    delete (config as { wallet?: unknown }).wallet;
+    const client = createCaatingaClient(config);
+
+    await expect(client.contract("counter").invoke("increment")).rejects.toMatchObject({
+      code: CaatingaErrorCode.WALLET_NOT_CONNECTED,
+    });
+  });
+
+  it("should_map_omitted_wallet_to_WALLET_NOT_CONNECTED_on_buildXdr", async () => {
+    const config = createClientConfig();
+    delete (config as { wallet?: unknown }).wallet;
+    const client = createCaatingaClient(config);
+
+    await expect(client.contract("counter").buildXdr("increment")).rejects.toMatchObject({
       code: CaatingaErrorCode.WALLET_NOT_CONNECTED,
     });
   });
