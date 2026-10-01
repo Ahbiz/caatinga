@@ -31,6 +31,10 @@ describe("recover deploy contract id", () => {
     ).toBe("5145c0d3671aa4c41fa2615b64030e9be5cddb08411ce792bf568ef51f1239e3");
   });
 
+  it("should_throw_when_the_salt_is_not_a_decimal_integer", () => {
+    expect(() => decimalSaltToHex("not-a-salt")).toThrow(SyntaxError);
+  });
+
   it("should_fetch_create_contract_salt_from_horizon", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
@@ -192,6 +196,41 @@ describe("recover deploy contract id", () => {
     });
 
     expect(contractId).toBeNull();
+  });
+
+  it("should_return_null_when_the_horizon_salt_is_malformed", async () => {
+    runCommandMock.mockReset();
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        _embedded: {
+          records: [
+            {
+              transaction_successful: true,
+              type: "invoke_host_function",
+              function: "HostFunctionTypeHostFunctionTypeCreateContract",
+              salt: "not-a-salt",
+            },
+          ],
+        },
+      }),
+    });
+
+    await expect(
+      tryRecoverContractIdFromDeployFailure({
+        output: [
+          "Transaction hash is 9fd39d640ef3bae443d2b2748aa3f2ca43bb8261a9d5b8a8fa07fc3c0c1c85d6",
+          "error: xdr processing error: xdr value invalid",
+        ].join("\n"),
+        source: "alice",
+        network: {
+          rpcUrl: "https://soroban-testnet.stellar.org",
+          networkPassphrase: "Test SDF Network ; September 2015",
+        },
+        fetchImpl,
+      })
+    ).resolves.toBeNull();
+    expect(runCommandMock).not.toHaveBeenCalled();
   });
 });
 

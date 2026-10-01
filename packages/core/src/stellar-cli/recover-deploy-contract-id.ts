@@ -142,6 +142,9 @@ export async function tryRecoverContractIdFromDeployFailure(options: {
       cwd: options.cwd,
     });
   } catch {
+    // A malformed salt, a stellar CLI failure, or an unparseable contract id means
+    // recovery is unavailable. Returning null lets the caller rethrow the original
+    // deploy error instead of replacing it.
     return null;
   }
 }
